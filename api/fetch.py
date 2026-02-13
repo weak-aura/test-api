@@ -56,7 +56,7 @@ def get_data(category: str):
             cookies=cookies,
             impersonate="chrome110",
             proxies=proxies,  # Вот здесь магия подмены IP
-            timeout=15
+            timeout=30
         )
 
         # Если статус не 200, выбрасываем ошибку
