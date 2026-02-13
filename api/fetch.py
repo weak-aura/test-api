@@ -7,8 +7,8 @@ def get_data(category: str):
 
 
     proxies = {
-    "http": "http://45.159.250.127:8118",
-    "https": "http://45.159.250.127:8118"
+    "http": "http://45.130.7.118",
+    "https": "http://45.130.7.118"
 }
 
     # Параметры запроса (Query Strings)
