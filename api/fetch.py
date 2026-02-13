@@ -1,8 +1,15 @@
 from fastapi import HTTPException
 from curl_cffi import requests
 
+
 def get_data(category: str):
     url = 'https://kaspi.kz/yml/product-view/pl/filters'
+    proxy_url = "http://user123:pass456@1.2.3.4:8080"
+
+    proxies = {
+        "http": proxy_url,
+        "https": proxy_url
+    }
 
     # Параметры запроса (Query Strings)
     params = {
@@ -48,6 +55,7 @@ def get_data(category: str):
             headers=headers,
             cookies=cookies,
             impersonate="chrome110",
+            proxies=proxies,  # Вот здесь магия подмены IP
             timeout=15
         )
 
