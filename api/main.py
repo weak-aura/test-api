@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware # Импортируем прослойку CORS
 import httpx
 
-from fetch import get_data
+from .fetch import get_data
 
 app = FastAPI()
 
