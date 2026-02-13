@@ -4,12 +4,12 @@ from curl_cffi import requests
 
 def get_data(category: str):
     url = 'https://kaspi.kz/yml/product-view/pl/filters'
-    proxy_url = "http://user123:pass456@1.2.3.4:8080"
+
 
     proxies = {
-        "http": proxy_url,
-        "https": proxy_url
-    }
+    "http": "http://45.159.250.127:8118",
+    "https": "http://45.159.250.127:8118"
+}
 
     # Параметры запроса (Query Strings)
     params = {
