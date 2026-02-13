@@ -2,7 +2,7 @@ from typing import Optional
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware # Импортируем прослойку CORS
 
-from fetch import get_data
+from api.fetch import get_data
 
 app = FastAPI()
 
