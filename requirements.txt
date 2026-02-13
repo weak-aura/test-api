@@ -2,3 +2,4 @@ fastapi
 uvicorn
 Optional
 httpx
+curl_cffi
