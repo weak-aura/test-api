@@ -2,7 +2,7 @@ from typing import Optional
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware # Импортируем прослойку CORS
 
-from api import get_data
+from fetch import get_data
 
 app = FastAPI()
 
@@ -14,6 +14,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.get("/")
+def read_root():
+    return {"Hello": "World"}
 
 @app.get("/api/product-view/filters")
 async def kaspi_data(category: Optional[str] = None):
