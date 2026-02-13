@@ -25,6 +25,10 @@ async def kaspi_data(category: Optional[str] = None):
     if category is None: return None
     return await get_data(category)
 
+@app.get("/api/products")
+def get_products(category: str = "Fashion"):
+    return get_data(category)
+
 @app.get("/check-ip")
 async def check_ip():
     async with httpx.AsyncClient() as client:

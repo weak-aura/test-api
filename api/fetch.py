@@ -1,9 +1,10 @@
 from fastapi import HTTPException
-import httpx
+from curl_cffi import requests
 
-async def get_data(category):
+def get_data(category: str):
     url = 'https://kaspi.kz/yml/product-view/pl/filters'
 
+    # Параметры запроса (Query Strings)
     params = {
         'q': f':category:{category}:availableInZones:Magnum_ZONE1',
         'text': '',
@@ -14,6 +15,7 @@ async def get_data(category):
         'c': '750000000'
     }
 
+    # Заголовки как в вашем браузере
     headers = {
         "accept": "application/json, text/*",
         "accept-language": "ru-RU,ru;q=0.9",
@@ -29,6 +31,7 @@ async def get_data(category):
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36"
     }
 
+    # Куки (помните, что они могут протухнуть через время)
     cookies = {
         "k_stat": "09de4cbe-9cf4-4708-a2e5-44de4e22d657",
         "ks.tg": "20",
@@ -37,31 +40,34 @@ async def get_data(category):
         "locale": "ru-RU"
     }
 
-    async with httpx.AsyncClient() as client:
-        try:
-            response = await client.get(url, params=params, headers=headers, cookies=cookies, timeout=10.0)
-            response.raise_for_status()
-            return response.json()
+    try:
+        # Используем impersonate="chrome" для обхода защиты Kaspi
+        response = requests.get(
+            url,
+            params=params,
+            headers=headers,
+            cookies=cookies,
+            impersonate="chrome110",
+            timeout=15
+        )
 
-        except httpx.HTTPStatusError as e:
-            raise HTTPException(status_code=e.response.status_code, detail=f"Kaspi API error: {e.response.text}")
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Internal error: {str(e)}")
+        # Если статус не 200, выбрасываем ошибку
+        if response.status_code != 200:
+            # Если вернулся HTML вместо JSON, значит IP заблокирован
+            if "text/html" in response.headers.get("Content-Type", ""):
+                raise HTTPException(
+                    status_code=403,
+                    detail="Kaspi blocked Vercel IP. Try to change region or use proxy."
+                )
+            raise HTTPException(
+                status_code=response.status_code,
+                detail=f"Kaspi API error: {response.text[:500]}"
+            )
 
+        return response.json()
 
-
-# curl 'https://kaspi.kz/yml/product-view/pl/filters?q=%3AavailableInZones%3AMagnum_ZONE1%3Acategory%3AFashion&text&all=false&sort=relevance&ui=d&i=-1&c=750000000' \
-#   -H 'Accept: application/json, text/*' \
-#   -H 'Accept-Language: ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7' \
-#   -H 'Connection: keep-alive' \
-#   -b 'k_stat=09de4cbe-9cf4-4708-a2e5-44de4e22d657; ks.tg=20; kaspi.storefront.cookie.city=750000000; current-action-name=Index; locale=ru-RU; _hjSessionUser_283363=eyJpZCI6IjIxMTJjZjhjLTY3ZTAtNTMwYS1iMGEzLWQ2MTAxNTBiYTFlYiIsImNyZWF0ZWQiOjE3NzAzOTY1NDIyNzMsImV4aXN0aW5nIjp0cnVlfQ==' \
-#   -H 'Referer: https://kaspi.kz/shop/c/fashion/?q=%3Acategory%3AFashion%3AavailableInZones%3AMagnum_ZONE1&sort=relevance&sc=' \
-#   -H 'Sec-Fetch-Dest: empty' \
-#   -H 'Sec-Fetch-Mode: cors' \
-#   -H 'Sec-Fetch-Site: same-origin' \
-#   -H 'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36' \
-#   -H 'X-Description-Enabled: true' \
-#   -H 'X-KS-City: 750000000' \
-#   -H 'sec-ch-ua: "Not(A:Brand";v="8", "Chromium";v="144", "Google Chrome";v="144"' \
-#   -H 'sec-ch-ua-mobile: ?0' \
-#   -H 'sec-ch-ua-platform: "Windows"'
+    except Exception as e:
+        # Ловим системные ошибки (таймауты, отсутствие интернета и т.д.)
+        if isinstance(e, HTTPException):
+            raise e
+        raise HTTPException(status_code=500, detail=f"Internal error: {str(e)}")
